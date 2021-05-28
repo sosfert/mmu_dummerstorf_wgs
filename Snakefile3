@@ -1,0 +1,85 @@
+
+
+### SAMPLOT SV SNAPSHOTS ###
+
+# samplot screenshots of SV examples from bam files 
+
+import pandas as pd
+
+lines = [line for index, line in pd.read_csv("samplot_DUC_SV.csv").iterrows()]
+
+SV_TYPE=["DEL", "DUP", "INV"]
+MICE_LINE=["DU6", "DU6P", "DUhLB", "DUC", "DUK", "FZTDU"]
+BAM="/home/fb4/derezanin/sos-fert/04_alignments_merged_dedup_BQSR/results/merged"  
+BAM2="/home/fb4/derezanin/sos-fert/04_alignments_merged_dedup_BQSR2/BQSRbam"
+BED="/home/fb4/derezanin/sos-fert/20_structural_variants/git/SOS-FERT_SV_analysis"
+
+DUC="H07758 H07759 H07760 H07761 H07762 H07763 H07764 H07765 H07766 H07767"
+
+
+configfile: "config_DUC.yaml"
+
+
+rule all:
+    input:
+        expand("11_sv_snapshots/DUC_{line.Group}_chr{line.Chr}_{line.SV_start}_{line.SV_end}.png",line=lines)
+# sample=config["samples"])
+
+# DUC
+
+samplot plot \
+  -n H07768 H07769 H07770 H07771 H07772 \
+  -b $BAM/H07768-L1.merged.sorted.dedup.bqsr.bam \
+     $BAM/H07769-L1.merged.sorted.dedup.bqsr.bam \
+     $BAM/H07770-L1.merged.sorted.dedup.bqsr.bam \
+     $BAM/H07771-L1.merged.sorted.dedup.bqsr.bam \
+     $BAM/H07772-L1.merged.sorted.dedup.bqsr.bam \
+  -o DU6P_DUP_chr6_128843401_128854378_5samples.png \
+  -c 6 \
+  -s 128843401 \
+  -e 128854378 \
+  -t DUP \
+  -d 100 \
+  -A $BED/Mus_musculus.GRCm38_output_ranges.bed.gz
+  # -T Mus_musculus.GRCm38.93_srt.gff3.gz \
+
+
+# H07773 H07774 H07775 H07776 H07777 
+# $BAM/H07773-L1.merged.sorted.dedup.bqsr.bam \
+#      $BAM2/H07774.merged.sorted.dedup.bqsr.bam \
+#      $BAM2/H07775.merged.sorted.dedup.bqsr.bam \
+#      $BAM/H07776-L1.merged.sorted.dedup.bqsr.bam \
+#      $BAM2/H07777.merged.sorted.dedup.bqsr.bam \
+
+
+
+
+rule samplot_sv_snapshots:
+    input:
+        lambda wildcards: config["samples"][wildcards.sample]
+#         expand("{BAM}/H07758-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07759-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07760-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07761-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07762-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07763-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07764-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07765-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07766-L1.merged.sorted.dedup.bqsr.bam \
+# {BAM}/H07767-L1.merged.sorted.dedup.bqsr.bam", BAM=BAM)
+    output:
+        expand("11_sv_snapshots/DUC_{line.Group}_chr{line.Chr}_{line.SV_start}_{line.SV_end}.png",line=lines)
+    params:
+        sample_names="H07758 H07759 H07760 H07761 H07762 H07763 H07764 H07765 H07766 H07767",
+        chr="{line.Chr}",
+        start="{line.SV_start}",
+        end="{line.SV_end}",
+        sv_type="{line.Group}",
+        bed="{BED}/Mus_musculus.GRCm38_output_ranges.bed.gz"
+    log:
+        "logs/samplot/DUC/DUC_{line.Group}_chr{line.Chr}_{line.SV_start}_{line.SV_end}.log"
+    conda:
+        "envs/samplot.yml"
+    shell:
+        "samplot plot -n {params.sample_names} -b {input} -o {output} -c {params.chr} -s {params.start} -e {params.end} -t {sv_type} -d 100 -A {params.bed}"
+
