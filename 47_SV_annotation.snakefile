@@ -1,6 +1,6 @@
 ### STRUCTURAL VARIANT ANNOTATION ### 
 
-# dry run: snakemake -np --use-conda --cores 20 --verbose -s Snakefile2
+# dry run: snakemake -np --use-conda --cores 20 --verbose -s snakefile
 
 
 REF="../../../reference_genome_ensembl/Mus_musculus.GRCm38.dna.primary_assembly.fa"
@@ -13,15 +13,15 @@ rule all:
         # expand("10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/04_annotated/{mice_line}_all_SVs_filtered.vep.annot.vcf", mice_line=MICE_LINES),
         # expand("10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/04_annotated/01_SVs_gene_overlaps/{mice_line}_SVs_genes.vcf", mice_line=MICE_LINES),
         # expand("10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/04_annotated/01_SVs_gene_overlaps/{mice_line}_genes_{sv_type}.vcf", mice_line=MICE_LINES, sv_type=SV_TYPE),
-      # expand("05_calls_merged_per_line/05_annotated/{mice_line}.vep.annotated.vcf",  mice_line=MICE_LINES),
-      # expand("05_calls_merged_per_line/05_annotated/{mice_line}.vep.annotated.html", mice_line=MICE_LINES),
-      # expand("05_calls_merged_per_line/05_annotated/02_SVs_gene_overlaps/{mice_line}_SVs_gene_overlaps.vcf", mice_line=MICE_LINES),
-      # expand("05_calls_merged_per_line/05_annotated/02_SVs_gene_overlaps/{mice_line}_gene_overlaps_{sv_type}.vcf", mice_line=MICE_LINES, sv_type=SV_TYPE),
-      # expand("05_calls_merged_per_line/05_annotated/02_SVs_gene_overlaps/{mice_line}_gene_info_{sv_type}.csv",  mice_line=MICE_LINES, sv_type=SV_TYPE)
-      # "06_all_mice_lines_merged/mice_lines_all.vep.annotated.vcf",
-      "10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/05_annotated_private/mice_lines_all_SVs_filtered.vep.annot.vcf"
-      # expand("06_all_mice_lines_merged/{mice_line}_unique_SVs.stats", mice_line=MICE_LINES),
-      # expand("06_all_mice_lines_merged/{mice_line}_unique_{sv_type}.vcf", mice_line=MICE_LINES, sv_type=SV_TYPE)
+        # expand("05_calls_merged_per_line/05_annotated/{mice_line}.vep.annotated.vcf",  mice_line=MICE_LINES),
+        # expand("05_calls_merged_per_line/05_annotated/{mice_line}.vep.annotated.html", mice_line=MICE_LINES),
+        # expand("05_calls_merged_per_line/05_annotated/02_SVs_gene_overlaps/{mice_line}_SVs_gene_overlaps.vcf", mice_line=MICE_LINES),
+        # expand("05_calls_merged_per_line/05_annotated/02_SVs_gene_overlaps/{mice_line}_gene_overlaps_{sv_type}.vcf", mice_line=MICE_LINES, sv_type=SV_TYPE),
+        # expand("05_calls_merged_per_line/05_annotated/02_SVs_gene_overlaps/{mice_line}_gene_info_{sv_type}.csv",  mice_line=MICE_LINES, sv_type=SV_TYPE)
+        # "06_all_mice_lines_merged/mice_lines_all.vep.annotated.vcf",
+        # "10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/05_annotated_private/mice_lines_all_SVs_filtered.vep.annot.vcf"
+        # expand("06_all_mice_lines_merged/{mice_line}_unique_SVs.stats", mice_line=MICE_LINES),
+        # expand("06_all_mice_lines_merged/{mice_line}_unique_{sv_type}.vcf", mice_line=MICE_LINES, sv_type=SV_TYPE)
 
 
 
@@ -140,15 +140,11 @@ rule cut_SV_info_cols:
 
 rule vep_annotate_all_mice_lines:
     input:
-      # calls="06_all_mice_lines_merged/mice_lines_all.vcf",
       calls="10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/05_annotated_private/mice_lines_all_SVs_filtered.vcf",
       cache="annotation/vep/cache",
-      # plugins="annotation/vep/plugins",
       fasta="/projekte/I2-SOS-FERT/reference_genome_ensembl/Mus_musculus.GRCm38.dna.primary_assembly.fa"
     output:
-      # annotated="06_all_mice_lines_merged/mice_lines_all.vep.annotated.vcf"
         annotated="10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/05_annotated_private/mice_lines_all_SVs_filtered.vep.annot.vcf"
-    
     params:
       extra="--coding_only --per_gene --gene_phenotype --symbol --protein --sift b --overlaps --max_sv_size 200000000 --force_overwrite" 
     log:
@@ -174,9 +170,6 @@ rule vep_annotate_all_mice_lines:
 # grep -v "^##" mice_lines_all.vep.annotated.vcf | grep -P "^#|SUPP_VEC=000010" > DUK_unique_SVs.vcf
 
 # grep -v "^##" mice_lines_all.vep.annotated.vcf | grep -P "^#|SUPP_VEC=000001" > FZTDU_unique_SVs.vcf
-
-# subset shared SVs in fertility lines DUK and DUC
-# grep -v "^##" mice_lines_all.vep.annotated.vcf | grep -P "^#|SUPP_VEC=001010" > FERT_unique_SVs.vcf
 
 
 # run stats on each unique SV call set 
@@ -207,43 +200,3 @@ rule grep_SV_types_from_each_line:
     sv_type="{sv_type}"
   shell:
     "grep -v '^#' {input} | grep 'SVTYPE={params.sv_type}' > {output} 2> {log}"
-
-
-
-# get SV lengths
-# get percentages of each SV type in total SVs
-
-
-
-
-  # vep \
-  # -i 05_calls_merged_per_line/03_merged_lines_filtered/DU6_filt.vcf \
-  # --species mus_musculus \
-  # --cache --dir_cache $DIR_CACHE \
-  # --sf DU6_variants.vep_summary.html \
-  # --dir 05_calls_merged_per_line/05_annotated_conda \
-  # --fasta $REF \
-  # --o DU6_variants.vep.annotated.vcf \
-  # --offline \
-  # --vcf \
-  # --fork 4 \
-  # --format vcf \
-  # --symbol \
-  # --protein \
-  # --sift b \
-  # --gene_phenotype \
-  # --per_gene \
-  # --coding_only \
-  # --overlaps \
-  # --max_sv_size 200000000 \
-  # --force_overwrite 2> DU6_vep.anno.log
-
-
-
-
-
-
-
-
-
-
