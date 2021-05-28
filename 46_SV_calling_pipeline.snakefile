@@ -3,18 +3,16 @@
 
 # author: Lorena Derezanin
 # date: 5/11/2020
-# run in conda env snakemake 
-# snakemake v.5.28
-# check snakefile status with: snakemake --lint -s Snakefile1
-# dry run: snakemake -np --use-conda --cores 80 --verbose -s Snakefile1
+# ran in conda env snakemake (v.5.28)
+# dry run: snakemake -np --use-conda --cores 20 --verbose -s snakefile
 
 ###################################################################################################################
 
-## mice reads mapped to mice reference genome (Mus_musculus.GRCm38) 
+## reads mapped to mice reference genome (Mus_musculus.GRCm38) 
 # 150 samples in the cohort (6 lines)
-# SV caller: Smoove (Lumpy + svtools) - population call
-#            Manta - individual calls
-#            Whamg - individual calls
+# SV callers: Smoove (Lumpy + svtools) - population call
+#             Manta - individual calls
+#             Whamg - individual calls
 
 ###################################################################################################################
 
@@ -251,7 +249,7 @@ rule keep_PR_SR_manta:
 # script parameters: 
   # size: filtered out calls <50bp and >2Mb
   # filter out calls with less than 4 support. reads 
-  # max CW < 0.2 translocations
+  # max CW < 0.2 (BND/translocations)
 
 rule filter_whamg:
     input:
@@ -511,10 +509,9 @@ rule change_SUPP_type:
 
 
 
-# keep SV calls for which at least 60% (15) of samples passed filter and merging steps
+# keep SV calls for which all 10 high cov. samples and at least 10 out of 15 of low cov. samples passed filter and merging steps
 
-# run separately with lower cutoff for DU6 mice line, due to the low coverage, 12 samples SUPP>=12 - done
-rule min_15_samples_per_line:
+rule min_10_samples_per_line:
     input:
         "05_calls_merged_per_line/01_merged_lines/{mice_line}_merged_int.vcf"
     output:
@@ -524,12 +521,12 @@ rule min_15_samples_per_line:
     conda:
         "envs/bcftools.yml"
     shell:
-        "bcftools filter -i 'INFO/SUPP>=15' {input} > {output} 2> {log}"
+        "bcftools filter -i 'INFO/SUPP>=10' {input} > {output} 2> {log}"
 
 
 
 # run stats
-rule min_15_samples_stats:
+rule min_10_samples_stats:
     input:
         "05_calls_merged_per_line/03_merged_lines_filtered/{mice_line}_filt.vcf"
     output:
@@ -562,7 +559,7 @@ rule merge_mice_lines:
     shell:
         "SURVIVOR merge {input} {params} {output} 2> {log}"
 
-# rename mice lines in the vcf files
+# fix mice line names in the vcf files
 
 
 
@@ -582,8 +579,6 @@ rule all_mice_lines_stats:
 
 
 
-
-
 # prep matrix for UpSetplot
 # perl -ne 'print "$1\n" if /SUPP_VEC=([^,;]+)/' mice_lines_all.vep.annotated.vcf | sed -e 's/\(.\)/\1 /g' > mice_lines_all.vep.annotated.vcf.overlap.txt
 
@@ -596,9 +591,6 @@ rule all_mice_lines_stats:
 #   base=$(basename $f ".vcf")
 #   grep -Ev '^(##contig=<ID=JH|##contig=<ID=GL|##contig=<ID=MT)' $f > $VEP_PREP_DIR/01_unlocalized_scf_removed/${base}_h.vcf
 # done
-
-
-# annotation
 
 
 
