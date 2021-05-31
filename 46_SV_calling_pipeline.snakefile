@@ -459,7 +459,6 @@ rule survivor_sample_stats:
 ## SURVIVOR MERGE PER LINE ##
 
 # split samples per mice line
-
 # prepare list of samples for each line
 
 # merge samples per line, SV start/end within 1000 bp
@@ -579,18 +578,8 @@ rule all_mice_lines_stats:
 
 
 
-# prep matrix for UpSetplot
-# perl -ne 'print "$1\n" if /SUPP_VEC=([^,;]+)/' mice_lines_all.vep.annotated.vcf | sed -e 's/\(.\)/\1 /g' > mice_lines_all.vep.annotated.vcf.overlap.txt
 
 
-
-# remove unlocalized scfs from header
-
-# for f in $VEP_PREP_DIR/01_unlocalized_scf_removed/*.vcf
-# do
-#   base=$(basename $f ".vcf")
-#   grep -Ev '^(##contig=<ID=JH|##contig=<ID=GL|##contig=<ID=MT)' $f > $VEP_PREP_DIR/01_unlocalized_scf_removed/${base}_h.vcf
-# done
 
 
 
