@@ -41,33 +41,16 @@ rule get_vep_cache:
 
 
 
-# download vep plugins
-rule get_vep_plugins:
-    output:
-      directory("annotation/vep/plugins")
-    log:
-      "logs/vep/plugins.log"
-    params:
-      release=101
-    wrapper:
-      "0.67.0/bio/vep/plugins"
-
-
-
 #### use conda vep instead of the wrapper
 
 rule vep_annotate_conda:
     input:
-      # calls=expand("05_calls_merged_per_line/03_merged_lines_filtered/{mice_line}_filt.vcf", mice_line="{mice_line}"),
       calls=expand("10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/{mice_line}_merged_all_SVs_filtered.vcf", mice_line="{mice_line}"),
       cache="annotation/vep/cache",
-      # plugins="annotation/vep/plugins",
       fasta="/projekte/I2-SOS-FERT/reference_genome_ensembl/Mus_musculus.GRCm38.dna.primary_assembly.fa"
     output:
       annotated="10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/04_annotated/{mice_line}_all_SVs_filtered.vep.annot.vcf"
-      # stats="05_calls_merged_per_line/05_annotated/{mice_line}.vep.annotated.html"
     params:
-      # plugin=["GO"],
       extra="--coding_only --per_gene --gene_phenotype --symbol --protein --sift b --overlaps --max_sv_size 200000000 --force_overwrite" 
     log:
       "logs/vep/{mice_line}_filt.vep.anno.log"
@@ -78,16 +61,11 @@ rule vep_annotate_conda:
       "vep -i {input.calls} --species mus_musculus --cache --dir_cache {input.cache} --fasta {input.fasta} {params.extra} --o {output.annotated} --stats_text --fork 4 --vcf --format vcf 2> {log}"
 
 
-# --dir_plugins {input.plugins} 
-# {params.plugin}
-
-
 
 # subset SVs overlapping protein-coding genes in each line
 
 rule grep_SVs_overlapping_genes:
   input:
-      # expand("05_calls_merged_per_line/05_annotated/{mice_line}.vep.annotated.vcf", mice_line="{mice_line}")
       expand("10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/04_annotated/{mice_line}_all_SVs_filtered.vep.annot.vcf", mice_line="{mice_line}")
   output:
       "10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/04_annotated/01_SVs_gene_overlaps/{mice_line}_SVs_genes.vcf"
@@ -102,10 +80,8 @@ rule grep_SVs_overlapping_genes:
 # subset SV types in each line
 rule grep_SV_types_genes_ovrlp:
   input:
-      # expand("05_calls_merged_per_line/05_annotated/02_SVs_gene_overlaps/{mice_line}_SVs_gene_overlaps.vcf", mice_line="{mice_line}")
       expand("10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/04_annotated/01_SVs_gene_overlaps/{mice_line}_SVs_genes.vcf", mice_line="{mice_line}")
   output:
-      # "05_calls_merged_per_line/05_annotated/02_SVs_gene_overlaps/{mice_line}_genes_{sv_type}.vcf"
       "10_comparison_full_set_high_low_cov/06_merged_high_low_SVs/04_annotated/01_SVs_gene_overlaps/{mice_line}_genes_{sv_type}.vcf"
   log:
       "logs/vep/{mice_line}_sv_gene_ovrlp_{sv_type}.log"
