@@ -1,0 +1,67 @@
+---
+title: "Mice_lines_SV_analysis"
+author: "Lorena Derezanin"
+date: "12/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+# initialize renv for a private pkg library and project reproducibility
+#renv::init()
+#renv::activate()
+
+# load packages
+# install.packages("BiocManager")
+library(BiocManager)
+options(repos = BiocManager::repositories()) # Bioconductor repo added to renv
+
+# renv::install("tidyverse")
+# renv::install("data.table")
+# renv::install("RColorBrewer")
+# renv::install("UpSetR")
+#renv::install("stringi")
+
+library(data.table)
+library(tinytex)
+library(knitr)
+library(stringi)
+library(UpSetR)
+library(tidyverse)
+library(RColorBrewer)
+library(grid)
+library(scales)
+
+```
+
+
+
+### Shared and line-specific SVs in all mice lines ###
+
+
+```{r upset plot high and low cov. samples, echo=FALSE}
+
+
+png(file = "UpSetR_mice_lines_all_SVs_filtered.png", width = 3400, height = 1800, res = 300)
+
+survivor_matrix <- read.table("overlap_matrices_for_upset_plots/mice_lines_all_SVs_filtered_overlap.txt")
+colnames(survivor_matrix) <- c("DU6","DU6P","DUC","DUhLB", "DUK", "FZTDU") 
+                  
+#survivor_matrix_all_cols <- survivor_matrix %>% mutate(SV_MantaIDs = mantaIDs) %>% select(SV_MantaIDs, everything())
+
+upset(
+      survivor_matrix, 
+      nsets = 6, nintersects = 30, 
+      mb.ratio = c(0.7, 0.3), matrix.color = "brown1", 
+      sets.bar.color = "cornflowerblue", order.by = "freq", 
+      keep.order = FALSE, set_size.show = F, 
+      text.scale = 1.0, point.size = 2.5, line.size = 1,
+      
+      )
+
+dev.off()
+
+
+```
+
